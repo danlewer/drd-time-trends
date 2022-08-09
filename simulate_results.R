@@ -28,8 +28,9 @@ aod[, p3 := predict(m3, newdata = aod, type = 'response')]
 
 # add fitted lines to plot - cubic splines and polynomials up to 4 are both good
 
+dev.off()
 with(aod, {
-  plot(year, n, type = 'b', ylim = c(0, 5000))
+  plot(year, n, type = 'b', ylim = c(0, 5000), ylab = NA)
   lines(year, p1, col = 'red') # polynomials up to 3
   lines(year, p2, col = 'green') # polynomials up to 4
   lines(year, p3, col = 'blue') # cubic splines
@@ -76,9 +77,17 @@ dd[, season := cos(season)]
 dd[, mth := month(dt)]
 dd[, mth := factor(mth, 1:12, month.abb)]
 
-# public holidays (just do Christmas for now)
+# public holidays
 
-dd[, holiday := dayOfYear %in% c(358:366, 1:2)]
+publicHolidays <-c('publicholiday.GB.1993.csv', 'publicholiday.GB.1994.csv', 'publicholiday.GB.1995.csv', 'publicholiday.GB.1996.csv', 'publicholiday.GB.1997.csv', 'publicholiday.GB.1998.csv', 'publicholiday.GB.1999.csv', 'publicholiday.GB.2000.csv', 'publicholiday.GB.2001.csv', 'publicholiday.GB.2002.csv', 'publicholiday.GB.2003.csv', 'publicholiday.GB.2004.csv', 'publicholiday.GB.2005.csv', 'publicholiday.GB.2006.csv', 'publicholiday.GB.2007.csv', 'publicholiday.GB.2008.csv', 'publicholiday.GB.2009.csv', 'publicholiday.GB.2010.csv', 'publicholiday.GB.2011.csv', 'publicholiday.GB.2012.csv', 'publicholiday.GB.2013.csv', 'publicholiday.GB.2014.csv', 'publicholiday.GB.2015.csv', 'publicholiday.GB.2016.csv', 'publicholiday.GB.2017.csv', 'publicholiday.GB.2018.csv')
+publicHolidays <- paste0('https://raw.githubusercontent.com/danlewer/drd-time-trends/main/public-holidays/', publicHolidays)
+publicHolidays <- do.call(rbind, lapply(publicHolidays, read.csv))
+publicHolidays <- publicHolidays[, c('Date', 'Name')]
+setDT(publicHolidays)
+setnames(publicHolidays, c('Date', 'Name'), c('dt', 'publicHoliday'))
+publicHolidays[, dt := as.Date(dt)]
+dd <- publicHolidays[dd, on = 'dt']
+dd[, holiday := !is.na(publicHoliday)]
 
 # create target values risks
 
