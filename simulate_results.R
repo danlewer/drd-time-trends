@@ -78,6 +78,7 @@ dd[, mth := month(dt)]
 dd[, mth := factor(mth, 1:12, month.abb)]
 
 # public holidays
+# data from Nager.Date: https://date.nager.at/PublicHoliday/Country/GB
 
 publicHolidays <-c('publicholiday.GB.1993.csv', 'publicholiday.GB.1994.csv', 'publicholiday.GB.1995.csv', 'publicholiday.GB.1996.csv', 'publicholiday.GB.1997.csv', 'publicholiday.GB.1998.csv', 'publicholiday.GB.1999.csv', 'publicholiday.GB.2000.csv', 'publicholiday.GB.2001.csv', 'publicholiday.GB.2002.csv', 'publicholiday.GB.2003.csv', 'publicholiday.GB.2004.csv', 'publicholiday.GB.2005.csv', 'publicholiday.GB.2006.csv', 'publicholiday.GB.2007.csv', 'publicholiday.GB.2008.csv', 'publicholiday.GB.2009.csv', 'publicholiday.GB.2010.csv', 'publicholiday.GB.2011.csv', 'publicholiday.GB.2012.csv', 'publicholiday.GB.2013.csv', 'publicholiday.GB.2014.csv', 'publicholiday.GB.2015.csv', 'publicholiday.GB.2016.csv', 'publicholiday.GB.2017.csv', 'publicholiday.GB.2018.csv')
 publicHolidays <- paste0('https://raw.githubusercontent.com/danlewer/drd-time-trends/main/public-holidays/', publicHolidays)
