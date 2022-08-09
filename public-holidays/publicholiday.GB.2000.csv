@@ -1,0 +1,16 @@
+Date,LocalName,Name,CountryCode,Fixed,Global,LaunchYear,Type,Counties
+2000-01-01,New Year's Day,New Year's Day,GB,False,False,,Public,GB-NIR
+2000-01-03,New Year's Day,New Year's Day,GB,False,False,,Public,"GB-ENG,GB-WLS"
+2000-01-03,New Year's Day,New Year's Day,GB,False,False,,Public,GB-SCT
+2000-01-04,New Year's Day,New Year's Day,GB,False,False,,Public,GB-SCT
+2000-03-17,Saint Patrick's Day,Saint Patrick's Day,GB,True,False,,Public,GB-NIR
+2000-04-21,Good Friday,Good Friday,GB,False,True,,Public,
+2000-04-24,Easter Monday,Easter Monday,GB,False,False,,Public,"GB-ENG,GB-WLS,GB-NIR"
+2000-05-01,Early May Bank Holiday,Early May Bank Holiday,GB,False,True,1978,Public,
+2000-05-29,Spring Bank Holiday,Spring Bank Holiday,GB,False,True,1971,Public,
+2000-07-12,Battle of the Boyne,Battle of the Boyne,GB,True,False,,Public,GB-NIR
+2000-08-07,Summer Bank Holiday,Summer Bank Holiday,GB,False,False,1971,Public,GB-SCT
+2000-08-28,Summer Bank Holiday,Summer Bank Holiday,GB,False,False,1971,Public,"GB-ENG,GB-WLS,GB-NIR"
+2000-11-30,Saint Andrew's Day,Saint Andrew's Day,GB,True,False,,Public,GB-SCT
+2000-12-25,Christmas Day,Christmas Day,GB,False,True,,Public,
+2000-12-26,Boxing Day,St. Stephen's Day,GB,False,True,,Public,

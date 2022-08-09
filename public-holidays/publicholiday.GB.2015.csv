@@ -1,0 +1,14 @@
+Date,LocalName,Name,CountryCode,Fixed,Global,LaunchYear,Type,Counties
+2015-01-01,New Year's Day,New Year's Day,GB,False,True,,Public,
+2015-01-02,New Year's Day,New Year's Day,GB,False,False,,Public,GB-SCT
+2015-03-17,Saint Patrick's Day,Saint Patrick's Day,GB,True,False,,Public,GB-NIR
+2015-04-03,Good Friday,Good Friday,GB,False,True,,Public,
+2015-04-06,Easter Monday,Easter Monday,GB,False,False,,Public,"GB-ENG,GB-WLS,GB-NIR"
+2015-05-04,Early May Bank Holiday,Early May Bank Holiday,GB,False,True,1978,Public,
+2015-05-25,Spring Bank Holiday,Spring Bank Holiday,GB,False,True,1971,Public,
+2015-07-12,Battle of the Boyne,Battle of the Boyne,GB,True,False,,Public,GB-NIR
+2015-08-03,Summer Bank Holiday,Summer Bank Holiday,GB,False,False,1971,Public,GB-SCT
+2015-08-31,Summer Bank Holiday,Summer Bank Holiday,GB,False,False,1971,Public,"GB-ENG,GB-WLS,GB-NIR"
+2015-11-30,Saint Andrew's Day,Saint Andrew's Day,GB,True,False,,Public,GB-SCT
+2015-12-25,Christmas Day,Christmas Day,GB,False,True,,Public,
+2015-12-28,Boxing Day,St. Stephen's Day,GB,False,True,,Public,
