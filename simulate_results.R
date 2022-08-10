@@ -92,9 +92,9 @@ dd[, holiday := !is.na(publicHoliday)]
 
 # create target values risks
 
-weekendRisk <- 1.3
+weekendRisk <- 1.4
 holidayRisk <- 1.3
-seasonRisk <- 1.3 # max : min
+seasonRisk <- 1.2 # max : min
 
 dd[, season := (season + 1) / 2 * (seasonRisk - 1) + 1]
 dd[, weekendR := fifelse(weekend, weekendRisk, 1)]
@@ -119,6 +119,18 @@ m <- glm(sim ~ poly(x, 4) + weekday + mth + holiday, data = dd, family = 'poisso
 # report predicted values by weekday, season, and holiday
 # -------------------------------------------------------
 
+peak2low <- function(var = 'mth', allvars = c('mth', 'weekday', 'holiday'), B = 10, nd) {
+  f <- as.formula(paste0('a~poly(x, 4)+', paste0(allvars, collapse = '+')))
+  d <- dd[, c('x', allvars), with = F]
+  sapply(seq_len(B), function (y) {
+    if (y %% 10 == 0) print (y)
+    d$a <- rpois(nrow(dd), dd$target)
+    m <- glm(f, data = d, family = 'poisson')
+    b <- predict(m, newdata = nd, type = 'response')
+    max(b) / min(b)
+  })
+}
+
 critval <- qnorm(0.975)
 
 weekday_predict <- data.table(x = 27, weekday = wds, holiday = F, mth = 'Jan')
@@ -126,12 +138,20 @@ weekday_predict_modelled <- predict(m, newdata = weekday_predict, type = 'link',
 weekday_predict[, exp := m$family$linkinv(weekday_predict_modelled$fit)]
 weekday_predict[, ul := m$family$linkinv(weekday_predict_modelled$fit + critval * weekday_predict_modelled$se.fit)]
 weekday_predict[, ll := m$family$linkinv(weekday_predict_modelled$fit - critval * weekday_predict_modelled$se.fit)]
+set.seed(19)
+week_peak2low <- peak2low(B = 1000, nd = weekday_predict)
+quantile(week_peak2low, probs = c(0.5, 0.025, 0.975))
+
+
 
 month_predict <- data.table(x = 27, mth = month.abb, holiday = F, weekday = 'Mon')
 month_predict_modelled <- predict(m, newdata = month_predict, type = 'link', se.fit = T)
 month_predict[, exp := m$family$linkinv(month_predict_modelled$fit)]
 month_predict[, ul := m$family$linkinv(month_predict_modelled$fit + critval * month_predict_modelled$se.fit)]
 month_predict[, ll := m$family$linkinv(month_predict_modelled$fit - critval * month_predict_modelled$se.fit)]
+set.seed(17)
+month_peak2low <- peak2low(B = 1000, nd = month_predict)
+quantile(month_peak2low, probs = c(0.5, 0.025, 0.975))
 
 par(mfrow = c(1, 2))
 
