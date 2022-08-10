@@ -1,6 +1,7 @@
 library(data.table)
 library(splines)
 library(lubridate) # for function yday
+library(devEMF) # for saving vector images
 
 # -----------------------------------------------------
 # get annual data from ONS and estimate long-term trend
@@ -13,6 +14,25 @@ aod <- read.csv(url('https://raw.githubusercontent.com/danlewer/drd-time-trends/
 setDT(aod)
 aod <- aod[order(year)]
 aod[, x := .I]
+
+# plot of annual number of drug-related deaths
+
+emf('deathsPerYear.emf', height = 4, width = 5, family = 'Franklin Gothic Book')
+
+par(mar = c(5, 5, 0, 2))
+plot(1, type = 'n', xlim = c(1993, 2020), ylim = c(0, 5000), xlab = NA, ylab = NA, axes = F)
+axis(1, seq(1995, 2020, 5), pos = 0)
+axis(1, c(1993, 2020), pos = 0, labels = F)
+axis(2, 0:5 * 1000, formatC(0:5 * 1000, big.mark = ','), pos = 1993, las = 2)
+rect(1993, 0, 2020, 5000)
+with(aod, {
+  points(year, n, pch = 19)
+  lines(year, n)
+})
+title(xlab = 'Year of death', line = 2.5)
+title(ylab = 'Number of deaths due to drug poisoning', line = 3.5)
+
+dev.off()
 
 # model with polynomials for time
 
@@ -28,13 +48,24 @@ aod[, p3 := predict(m3, newdata = aod, type = 'response')]
 
 # add fitted lines to plot - cubic splines and polynomials up to 4 are both good
 
-dev.off()
+emf('polynomial_or_spline.emf', height = 5, width = 7, family = 'Franklin Gothic Book')
+
+par(mar = c(5, 5, 2, 10), xpd = NA)
 with(aod, {
-  plot(year, n, type = 'b', ylim = c(0, 5000), ylab = NA)
+  plot(year, n, type = 'b', ylim = c(2000, 5000), ylab = 'Annual deaths', axes = F, xlab = 'Year')
   lines(year, p1, col = 'red') # polynomials up to 3
   lines(year, p2, col = 'green') # polynomials up to 4
   lines(year, p3, col = 'blue') # cubic splines
 })
+axis(1, seq(1995, 2020, 5), pos = 2000)
+axis(1, c(1993, 2020), pos = 2000, labels = F)
+axis(2, 2:5 * 1000, pos = 1993, las = 2)
+rect(1993, 2000, 2020, 5000)
+ys <- seq(3300, 4000, length.out = 4)
+segments(2021, ys, 2024, ys, col = c('black', 'red', 'green', 'blue'))
+text(2025, ys, c('Observed data', 'Polynomial 3', 'Polynomial 4', 'Cubic spline'), adj = 0)
+
+dev.off()
 
 # ----------------------
 # simulate daily dataset
@@ -57,8 +88,8 @@ with(dd[sample(.N, 25)], {
   points(yr, p3, col = 'blue')
 })
 
-# add weekly, seasonal, and public holiday risks
-# ----------------------------------------------
+# add time-varying risks
+# ----------------------
 
 # weekday
 
@@ -67,9 +98,19 @@ wds <- c('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
 dd[, weekday := factor(weekday, wds)]
 dd[, weekend := weekday == 'Sat' | weekday == 'Sun']
 
+# week number (first week, last week, other)
+
+dd[, dayn := day(dt)]
+dd[, mthn := paste0(year(dt), '-', month(dt))]
+dd <- dd[, .(daysInMonth = max(dayn)), mthn][dd, on = 'mthn']
+dd$weekn <- 'other'
+dd$weekn[dd$dayn <= 7] <- 'first'
+dd$weekn[dd$dayn >= (dd$daysInMonth - 6)] <- 'last'
+dd[, weekn := factor(weekn, c('last', 'other', 'first'))]
+
 # season - assume sin wave in risk, peaking in August
 
-peak <- 213 # day of year 213, i.e. 1 August 
+peak <- 213 # 213th day of year, i.e. 1 August 
 dd[, season := dayOfYear - peak]
 dd[, season := fifelse(season < 0, season + 365, season)]
 dd[, season := season / 365 * (pi * 2)]
@@ -94,12 +135,14 @@ dd[, holiday := !is.na(publicHoliday)]
 
 weekendRisk <- 1.4
 holidayRisk <- 1.3
-seasonRisk <- 1.2 # max : min
+seasonRisk <- 1.7 # max : min
+weekNrisk <- 1.1
 
 dd[, season := (season + 1) / 2 * (seasonRisk - 1) + 1]
 dd[, weekendR := fifelse(weekend, weekendRisk, 1)]
 dd[, holidayR := fifelse(holiday, holidayRisk, 1)]
-dd[, fRisk := season * weekendR * holidayR]
+dd[, weekNR := fifelse(weekn == 'first', weekNrisk, 1)]
+dd[, fRisk := season * weekendR * holidayR * weekNR]
 dd[, fRisk2 := exp(log(fRisk) - mean(log(fRisk)))]
 dd[, target := (p2 * fRisk2) / 365]
 
@@ -113,13 +156,13 @@ dd[, sim := rpois(.N, target)]
 # fit poisson model
 # -----------------
 
-m <- glm(sim ~ poly(x, 4) + weekday + mth + holiday, data = dd, family = 'poisson')
+m <- glm(sim ~ poly(x, 4) + weekday + mth + holiday + weekn, data = dd, family = 'poisson')
 
 # -------------------------------------------------------
 # report predicted values by weekday, season, and holiday
 # -------------------------------------------------------
 
-peak2low <- function(var = 'mth', allvars = c('mth', 'weekday', 'holiday'), B = 10, nd) {
+peak2low <- function(allvars = c('mth', 'weekday', 'holiday', 'weekn'), B = 10, nd) {
   f <- as.formula(paste0('a~poly(x, 4)+', paste0(allvars, collapse = '+')))
   d <- dd[, c('x', allvars), with = F]
   sapply(seq_len(B), function (y) {
@@ -133,6 +176,8 @@ peak2low <- function(var = 'mth', allvars = c('mth', 'weekday', 'holiday'), B = 
 
 critval <- qnorm(0.975)
 
+# example 1: weekday
+
 weekday_predict <- data.table(x = 27, weekday = wds, holiday = F, mth = 'Jan')
 weekday_predict_modelled <- predict(m, newdata = weekday_predict, type = 'link', se.fit = T)
 weekday_predict[, exp := m$family$linkinv(weekday_predict_modelled$fit)]
@@ -142,7 +187,7 @@ set.seed(19)
 week_peak2low <- peak2low(B = 1000, nd = weekday_predict)
 quantile(week_peak2low, probs = c(0.5, 0.025, 0.975))
 
-
+# example 2: month
 
 month_predict <- data.table(x = 27, mth = month.abb, holiday = F, weekday = 'Mon')
 month_predict_modelled <- predict(m, newdata = month_predict, type = 'link', se.fit = T)
