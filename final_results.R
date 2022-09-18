@@ -1,9 +1,9 @@
-library(data.table) # for data processing
-library(lubridate) # for date formatting
-library(stringi) # for string processing
-library(extrafont) # to use custom fonts in plots
-library(RColorBrewer) # for colour palettes
-library(devEMF) # enhanced metafile graphic device
+library(data.table)
+library(lubridate)
+library(RColorBrewer)
+library(stringi)
+library(extrafont)
+library(devEMF)
 
 # ----------------------------------------
 # set simulations for peak-to-low estimate
@@ -200,6 +200,8 @@ fwrite(data.table(p2ls), 'p2ls.csv')
 # --------------------
 
 cols <- data.table(var = c('mth', 'weekn', 'weekday', 'holiday'), col = brewer.pal(4, 'Set2'))
+cols <- data.table(var = c('mth', 'weekn', 'weekday', 'holiday'), col = turbo(8)[4:7])
+
 
 # function for making plot data
 
@@ -231,11 +233,11 @@ pD$lev[pD$lev == 'Ny'] <- 'New Year'
 pD$lev[pD$lev == 'No'] <- 'Not a holiday'
 pD$lev[pD$lev == 'Other_holiday'] <- 'Other holiday'
 
-png('Fig2.png', height = 6, width = 8, units = 'in', res = 300, family = 'Franklin Gothic Book')
+png('Fig2.png', height = 6, width = 9, units = 'in', res = 300, family = 'Franklin Gothic Book')
 
 par(xpd = NA, mar = c(5, 4, 0, 7))
 plot(1, type = 'n', xlim = c(0, 28), ylim = c(0, 19), axes = F, xlab = NA, ylab = NA)
-rect(-0.5, 0, 28, 19, col = 'grey97')
+rect(-0.5, 0, 28, 19)
 with(pD, {
   rect(x-1, 0, x, e, col = col)
   arrows(x-0.5, ll, y1 = ul, code = 3, angle = 90, length = 0.05)
@@ -278,9 +280,9 @@ png('Fig3.png', height = 3, width = 6, units = 'in', res = 300, family = 'Frankl
 
 par(mfrow = c(1, 3), mar = c(0, 3, 0, 0), xpd = NA, oma = c(4, 2, 0, 0))
 
-sp(x = sD[1:4]$mth, title = '1993-2001', y = 6:10)
-sp(x = sD[5:8]$mth, title = '2002-2010', y = 5:9)
-sp(x = sD[9:12]$mth, title = '2011-2018', y = 11:15)
+sp(x = sD[1:4]$mth, title = '1993-2001', y = 6:11, toff = 0.5)
+sp(x = sD[5:8]$mth, title = '2002-2010', y = 5:10, toff = 0.5)
+sp(x = sD[9:12]$mth, title = '2011-2018', y = 11:16, toff = 0.5)
 
 mtext('Daily deaths', side = 2, outer = T, cex = 0.7)
 mtext('Month of death', side = 1, outer = T, line = 2, cex = 0.7)
@@ -368,9 +370,9 @@ png('Fig4.png', height = 3, width = 6.5, units = 'in', res = 300, family = 'Fran
 
 par(mfrow = c(1, 3), mar = c(0, 3, 0, 0), xpd = NA, oma = c(4, 2, 0, 0))
 
-sp(x = uD$holiday, title = 'All drugs', y = 12:19, ln = F, toff = 0.5, xlabs = hols)
-sp(x = uO$holiday, title = 'Opioid-related', y = 5:12, ln = F, toff = 0.5, xlabs = hols)
-sp(x = uN$holiday, title = 'Not opioid-related', y = 6:13, ln = F, toff = 0.5, xlabs = hols)
+sp(x = uD$holiday, title = 'All drugs', y = 12:20, ln = F, toff = 0.7, xlabs = hols)
+sp(x = uO$holiday, title = 'Opioid-related', y = 5:13, ln = F, toff = 0.7, xlabs = hols)
+sp(x = uN$holiday, title = 'Not opioid-related', y = 6:14, ln = F, toff = 0.7, xlabs = hols)
 
 mtext('Daily deaths', side = 2, outer = T, cex = 0.7)
 
