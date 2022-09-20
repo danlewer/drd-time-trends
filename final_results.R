@@ -1,9 +1,9 @@
-library(data.table)
-library(lubridate)
-library(RColorBrewer)
-library(stringi)
-library(extrafont)
-library(devEMF)
+library(data.table) # for data reading and manipulation
+library(lubridate) # for formatting dates
+library(RColorBrewer) # for colour palettes
+library(stringi) # for processing string variables (this script only uses 'stri_trans_totitle')
+library(extrafont) # for custom fonts in plots
+library(devEMF) # for enhanced metafile graphic device
 
 # ----------------------------------------
 # set simulations for peak-to-low estimate
@@ -483,6 +483,6 @@ points(327.5, 10, pch = 4)
 rect(320, 7.5, 335, 8.5, col = 'grey90', border = NA)
 segments(320, 8, x1 = 335)
 segments(320, 6, x1 = 335, col = c1)
-text(340, c(6, 8, 10), c('Smoothed\ntrend*', 'Deseasonalised\ntrend (95% CI)', 'Mean daily\ncount per month'), adj = 0)
+text(340, c(6, 8, 10), c('Smoothed\ntrend*', 'Long-term\ntrend (95% CI)', 'Mean daily\ncount per month'), adj = 0)
 
 dev.off()
