@@ -1,6 +1,7 @@
 library(data.table) # for data reading and manipulation
 library(lubridate) # for formatting dates
 library(RColorBrewer) # for colour palettes
+library(viridisLite) # more colour palettes
 library(stringi) # for processing string variables (this script only uses 'stri_trans_totitle')
 library(extrafont) # for custom fonts in plots
 library(devEMF) # for enhanced metafile graphic device
