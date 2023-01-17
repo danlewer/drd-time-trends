@@ -125,6 +125,64 @@ d[, period := factor(period, 1:3, c('1993-2001', '2002-2010', '2011-2018'))]
 sum(d$n) # 78583
 sum(d$o, na.rm = T) # 32322
 
+# --------
+# Figure 1
+# --------
+
+# Monthly count, smoothed using LOESS
+
+d[, mthDay := paste0(mth, '-', day(dt))]
+d[, mthn := cumsum(dayn == 1)]
+mt <- d[, .(n = sum(n), jan1 = any(mthDay == 'Jan-1'), yr = max(yr), d = .N), mthn]
+mt <- unique(d[, c('mthn', 'mth')])[mt, on = 'mthn']
+mm <- glm(n ~ poly(mthn, 4) + mth + offset(log(d)), data = mt, family = 'poisson')
+mt[, nd := n / d]
+mt[, d := 1]
+mt[, mth := 'Jan']
+ml <- loess(nd ~ mthn, data = mt, span = 0.05)
+mt[, l := predict(ml)]
+
+pred <- predict(mm, newdata = mt, se.fit = T)
+mt$e <- mm$family$linkinv(pred$fit)
+mt$ul <- mm$family$linkinv(pred$fit + qnorm(0.975) * pred$se.fit)
+mt$ll <- mm$family$linkinv(pred$fit - qnorm(0.975) * pred$se.fit)
+
+brk <- 5
+brka <- 1
+c1 <- brewer.pal(3, 'Set1')[1]
+
+#png('Fig1.png', height = 5, width = 8, units = 'in', res = 300, family = 'Franklin Gothic Book')
+cairo_pdf('Fig1.pdf', height = 5, width = 8, family = 'Franklin Gothic Book')
+
+par(mar = c(4, 5, 0, 9), xpd = NA)
+plot(1, type = 'n', xlim = range(mt$mthn), ylim = c(0, 15 - brk + brka), axes = F, xlab = NA, ylab = NA)
+with(mt[jan1 == T], segments(mthn, 0, y1 = 15 - brk + brka, lty = 3, lwd = 0.5))
+with(mt, {
+  polygon(c(mthn, rev(mthn)), c(ll, rev(ul)) - brk + brka, col = 'grey90', border = NA)
+  points(mthn, nd - brk + brka, pch = 4, cex = 0.5)
+  lines(mthn, e - brk + brka)
+  lines(mthn, l - brk + brka, col = c1)
+})
+rect(1, 0, 312, 15 - brk + brka)
+with(mt[yr %% 5 == 0 & jan1 == T], {
+  axis(1, mthn, labels = F, pos = 0)
+  axis(1, mthn, labels = paste0('Jan\n', yr), tick = F, pos = -0.3)
+})
+axis(2, seq(brk, 15, 1) - brk + brka, labels = seq(brk, 15, 1), pos = 1, las = 2)
+axis(2, 0, 0, pos = 1, las = 2)
+polygon(x = c(-5, 5, 5, -5), y = c(0.3, 0.5, 0.7, 0.5), col = 'white', border = NA)
+segments(x0 = c(-5, -5), y0 = c(0.3, 0.5), x1 = c(5, 5), y1 = c(0.5, 0.7))
+title(xlab = 'Date of death', line = 2.5)
+title(ylab = 'Daily number of deaths\ndue to drug poisoning')
+
+points(327.5, 10, pch = 4)
+rect(320, 7.5, 335, 8.5, col = 'grey90', border = NA)
+segments(320, 8, x1 = 335)
+segments(320, 6, x1 = 335, col = c1)
+text(340, c(6, 8, 10), c('Smoothed\ntrend*', 'Long-term\ntrend (95% CI)', 'Mean daily\ncount per month'), adj = 0)
+
+dev.off()
+
 # -----------
 # basic model
 # -----------
@@ -235,7 +293,7 @@ fdl <- function(var = 's',
   nd_yr <- cbind(nd_year[, var, with = F], nd_base[, -var, with = F])
   nd_yr$day <- max(dd$day)
   nd_yr$e <- predict(model, newdata = nd_yr, type = 'response')
-
+  
   # variable base
   nd_var <- nd_base
   nd_var[, which(var == names(nd_var))] <- NULL
@@ -592,7 +650,6 @@ dev.off()
 
 # New year effect - showing it is a 1 Jan effect (rather than 31 Dec)
 
-d[, mthDay := paste0(mth, '-', day(dt))]
 m2 <- glm(n ~ mthDay + poly(day, 4), data = d, family = 'poisson')
 nd <- data.table(day = 9496, mthDay = c(paste0('Dec-', 15:31), paste0('Jan-', 1:14)))
 pred <- predict(m2, newdata = nd, type = 'link', se.fit = T)
@@ -616,58 +673,5 @@ with(nd, {
   arrows(0:30 + 0.5, ll, y1 = ul, code = 3, angle = 90, length = 0.06)
 })
 title(ylab = 'Deaths per day')
-
-dev.off()
-
-# Monthly count, smoothed using LOESS
-
-d[, mthn := cumsum(dayn == 1)]
-mt <- d[, .(n = sum(n), jan1 = any(mthDay == 'Jan-1'), yr = max(yr), d = .N), mthn]
-mt <- unique(d[, c('mthn', 'mth')])[mt, on = 'mthn']
-mm <- glm(n ~ poly(mthn, 4) + mth + offset(log(d)), data = mt, family = 'poisson')
-mt[, nd := n / d]
-mt[, d := 1]
-mt[, mth := 'Jan']
-ml <- loess(nd ~ mthn, data = mt, span = 0.05)
-mt[, l := predict(ml)]
-
-pred <- predict(mm, newdata = mt, se.fit = T)
-mt$e <- mm$family$linkinv(pred$fit)
-mt$ul <- mm$family$linkinv(pred$fit + qnorm(0.975) * pred$se.fit)
-mt$ll <- mm$family$linkinv(pred$fit - qnorm(0.975) * pred$se.fit)
-
-brk <- 5
-brka <- 1
-c1 <- brewer.pal(3, 'Set1')[1]
-
-#png('Fig1.png', height = 5, width = 8, units = 'in', res = 300, family = 'Franklin Gothic Book')
-cairo_pdf('Fig1.pdf', height = 5, width = 8, family = 'Franklin Gothic Book')
-
-par(mar = c(4, 5, 0, 9), xpd = NA)
-plot(1, type = 'n', xlim = range(mt$mthn), ylim = c(0, 15 - brk + brka), axes = F, xlab = NA, ylab = NA)
-with(mt[jan1 == T], segments(mthn, 0, y1 = 15 - brk + brka, lty = 3, lwd = 0.5))
-with(mt, {
-  polygon(c(mthn, rev(mthn)), c(ll, rev(ul)) - brk + brka, col = 'grey90', border = NA)
-  points(mthn, nd - brk + brka, pch = 4, cex = 0.5)
-  lines(mthn, e - brk + brka)
-  lines(mthn, l - brk + brka, col = c1)
-})
-rect(1, 0, 312, 15 - brk + brka)
-with(mt[yr %% 5 == 0 & jan1 == T], {
-  axis(1, mthn, labels = F, pos = 0)
-  axis(1, mthn, labels = paste0('Jan\n', yr), tick = F, pos = -0.3)
-})
-axis(2, seq(brk, 15, 1) - brk + brka, labels = seq(brk, 15, 1), pos = 1, las = 2)
-axis(2, 0, 0, pos = 1, las = 2)
-polygon(x = c(-5, 5, 5, -5), y = c(0.3, 0.5, 0.7, 0.5), col = 'white', border = NA)
-segments(x0 = c(-5, -5), y0 = c(0.3, 0.5), x1 = c(5, 5), y1 = c(0.5, 0.7))
-title(xlab = 'Date of death', line = 2.5)
-title(ylab = 'Daily number of deaths\ndue to drug poisoning')
-
-points(327.5, 10, pch = 4)
-rect(320, 7.5, 335, 8.5, col = 'grey90', border = NA)
-segments(320, 8, x1 = 335)
-segments(320, 6, x1 = 335, col = c1)
-text(340, c(6, 8, 10), c('Smoothed\ntrend*', 'Long-term\ntrend (95% CI)', 'Mean daily\ncount per month'), adj = 0)
 
 dev.off()
