@@ -675,3 +675,42 @@ with(nd, {
 title(ylab = 'Deaths per day')
 
 dev.off()
+
+# ----------------------------------------------
+# test for effect of ICD9/ICD10 coding practices
+# ----------------------------------------------
+
+d[, icd10 := dt >= as.Date('2001-01-01', origin = '1970-01-01')]
+icd_model <- glm(n ~ poly(day2, degree = 4, raw = T), data = d, family = 'poisson')
+icd_model2 <- glm(n ~ poly(day2, degree = 4, raw = T)*icd10, data = d, family = 'poisson')
+anova(icd_model2, icd_model, test = 'LRT')
+
+nd <- data.table(dt = d$dt, day2 = d$day2, icd10 = T)
+p <- predict(icd_model, newdata = nd, se.fit = T)
+li <- icd_model$family$linkinv
+nd[, p1 := li(p$fit)]
+nd[, l1 := li(p$fit - qnorm(0.975) * p$se.fit)]
+nd[, u1 := li(p$fit + qnorm(0.975) * p$se.fit)]
+nd[, icd10 := d$icd10]
+p <- predict(icd_model2, newdata = nd, se.fit = T)
+nd[, p2 := li(p$fit)]
+nd[, l2 := li(p$fit - qnorm(0.975) * p$se.fit)]
+nd[, u2 := li(p$fit + qnorm(0.975) * p$se.fit)]
+nd[, x := .I]
+nd[, xlab := format(dt, '%d %b %Y')]
+
+emf('icd9_icd10.emf', height = 6, width = 6, family = 'Franklin Gothic Book')
+par(mar = c(7, 4, 0, 0), xpd = NA)
+plot(1, type = 'n', xlim = c(0, 9497), ylim = c(0, 15), axes = F, xlab = NA, ylab = 'Count of deaths per day')
+with(nd, {
+  lines(x, p1, col = 'red')
+  lines(x, l1, col = 'red', lty = 3)
+  lines(x, u1, col = 'red', lty = 3)
+  lines(x, p2, col = 'blue')
+  lines(x, l2, col = 'blue', lty = 3)
+  lines(x, u2, col = 'blue', lty = 3)
+})
+with(nd[yday(dt) == 1], axis(1, x, labels = xlab, pos = 0, las = 2))
+axis(2, pos = 0, las = 2)
+title(xlab = 'Day of death', line = 6)
+dev.off()
