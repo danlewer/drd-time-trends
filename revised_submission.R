@@ -471,7 +471,7 @@ tableS <- lapply(split(sD, rep(1:3, each = 4)),
 for (i in seq_along(tableS)) {
   tableS[[i]] <- cbind(strata = levels(d$period)[i], tableS[[i]])
 }
-
+tableS <- rbindlist(tableS)
 fwrite(tableS, 'supp_table.csv')
 
 # -----------------------------
