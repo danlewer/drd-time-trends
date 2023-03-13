@@ -8,7 +8,7 @@ Lewer D, Brothers TD, Gasparrini A, Strang J. Seasonal, weekly, and other cyclic
 The analysis followed a pre-published plan: [https://discovery.ucl.ac.uk/id/eprint/10154051](https://discovery.ucl.ac.uk/id/eprint/10154051)
 
 The repository includes:
-- A copy of [data published by ONS](https://github.com/danlewer/drd-time-trends/blob/main/ons_dp_opioid.csv)
+- A copy of [data published by ONS](https://github.com/danlewer/drd-time-trends/blob/main/ons_dp_opioid.csv). The original dataset is [here](https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/adhocs/14989numberofdrugrelateddeathsbyindividualdayofoccurrenceenglandandwalesoccurredbetween1993and2018andregisteredbytheendof2021).
 - Data on [public holidays in England](https://github.com/danlewer/drd-time-trends/tree/main/public-holidays) thanks to [Nager.Date](https://date.nager.at/PublicHoliday/Country/GB)
 - A [simulation of the study](https://github.com/danlewer/drd-time-trends/blob/main/simulate_results.R) used to help plan the analysis 
 - The [code](https://github.com/danlewer/drd-time-trends/blob/main/initial_submission.R) for the article initially submitted to the journal 
